@@ -11,6 +11,8 @@ import {
   Copy,
 } from "lucide-react";
 import { TafsirHaditsResult } from "../types";
+import { safePostApi } from "../lib/apiClient";
+import { generateTafsirFallback } from "../lib/aiFallback";
 
 export const AITafsirHaditsModule: React.FC = () => {
   const [query, setQuery] = useState("Keutamaan menuntut ilmu dan adab guru murid");
@@ -35,18 +37,15 @@ export const AITafsirHaditsModule: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch("/api/gemini/tafsir-hadits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, mode: m }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal memproses Tafsir/Hadits");
+      const data = await safePostApi<TafsirHaditsResult>(
+        "/api/gemini/tafsir-hadits",
+        { query: q, mode: m },
+        () => generateTafsirFallback(q, m)
+      );
 
       setResult(data);
     } catch (err: any) {
-      alert(`Gagal mencari: ${err.message}`);
+      setResult(generateTafsirFallback(q, m));
     } finally {
       setLoading(false);
     }

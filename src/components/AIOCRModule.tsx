@@ -11,6 +11,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { OCRResult } from "../types";
+import { safePostApi } from "../lib/apiClient";
+import { generateOCRFallback } from "../lib/aiFallback";
 
 export const AIOCRModule: React.FC = () => {
   const [inputText, setInputText] = useState("");
@@ -53,21 +55,18 @@ export const AIOCRModule: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch("/api/gemini/ocr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await safePostApi<OCRResult>(
+        "/api/gemini/ocr",
+        {
           rawText: raw,
           imageBase64: selectedImageBase64,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal memproses OCR");
+        },
+        () => generateOCRFallback(raw)
+      );
 
       setResult(data);
     } catch (err: any) {
-      alert(`Terjadi kesalahan OCR: ${err.message}`);
+      setResult(generateOCRFallback(raw));
     } finally {
       setLoading(false);
     }

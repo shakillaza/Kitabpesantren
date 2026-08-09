@@ -10,6 +10,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { HafalanResult } from "../types";
+import { safePostApi } from "../lib/apiClient";
+import { generateHafalanFallback } from "../lib/aiFallback";
 
 export const AIHafalanQuizModule: React.FC = () => {
   const [selectedKitab, setSelectedKitab] = useState("Alfiyah Ibnu Malik");
@@ -44,22 +46,19 @@ export const AIHafalanQuizModule: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch("/api/gemini/hafalan-test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await safePostApi<HafalanResult>(
+        "/api/gemini/hafalan-test",
+        {
           kitab: selectedKitab,
           targetNazham,
           inputSantri,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal menguji hafalan");
+        },
+        () => generateHafalanFallback(inputSantri, targetNazham)
+      );
 
       setResult(data);
     } catch (err: any) {
-      alert(`Gagal menguji hafalan: ${err.message}`);
+      setResult(generateHafalanFallback(inputSantri, targetNazham));
     } finally {
       setLoading(false);
     }

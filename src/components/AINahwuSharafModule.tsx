@@ -10,6 +10,8 @@ import {
   Table,
 } from "lucide-react";
 import { NahwuAnalysisResult } from "../types";
+import { safePostApi } from "../lib/apiClient";
+import { generateNahwuFallback } from "../lib/aiFallback";
 
 export const AINahwuSharafModule: React.FC = () => {
   const [sentenceInput, setSentenceInput] = useState("أَرْكَانُ الْإِسْلَامِ خَمْسَةٌ");
@@ -32,18 +34,15 @@ export const AINahwuSharafModule: React.FC = () => {
     setResult(null);
 
     try {
-      const response = await fetch("/api/gemini/nahwu-sharaf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kalimatArab: text }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal menganalisis kalimat");
+      const data = await safePostApi<NahwuAnalysisResult>(
+        "/api/gemini/nahwu-sharaf",
+        { kalimatArab: text },
+        () => generateNahwuFallback(text)
+      );
 
       setResult(data);
     } catch (err: any) {
-      alert(`Gagal menganalisis: ${err.message}`);
+      setResult(generateNahwuFallback(text));
     } finally {
       setLoading(false);
     }

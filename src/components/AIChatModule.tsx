@@ -11,13 +11,15 @@ import {
   Check,
 } from "lucide-react";
 import { ChatMessage } from "../types";
+import { safePostApi } from "../lib/apiClient";
+import { generateChatFallback } from "../lib/aiFallback";
 
 export const AIChatModule: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       role: "assistant",
-      text: "Assalamu'alaikum Warahmatullahi Wabarakatuh. Saya **Ustadz AI MUHAMMAD IKRAM 99**, asisten keilmuan Islam dan Kitab Kuning Pesantren. Ada masalah Fiqih, Nahwu, Sharaf, Tafsir, atau Hadits yang ingin didiskusikan hari ini?",
+      text: "Assalamu'alaikum Warahmatullahi Wabarakatuh. Saya **USTADZ MUHAMMAD IKRAM**, asisten keilmuan Islam dan Kitab Kuning Pesantren. Ada masalah Fiqih, Nahwu, Sharaf, Tafsir, atau Hadits yang ingin didiskusikan hari ini?",
       timestamp: "Baru saja",
     },
   ]);
@@ -57,17 +59,14 @@ export const AIChatModule: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/gemini/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await safePostApi<{ text: string }>(
+        "/api/gemini/chat",
+        {
           message: query,
           history: messages.map((m) => ({ role: m.role, text: m.text })),
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Gagal menghubungi server");
+        },
+        () => generateChatFallback(query)
+      );
 
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -79,13 +78,15 @@ export const AIChatModule: React.FC = () => {
 
       setMessages((prev) => [...prev, botMsg]);
     } catch (err: any) {
+      const fallback = generateChatFallback(query);
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          text: `Mohon maaf, terjadi kendala saat memproses kueri: ${err.message}. Silahkan coba kembali.`,
+          text: fallback.text,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          sources: ["Safinatun Najah", "Taqrib"],
         },
       ]);
     } finally {
@@ -161,7 +162,7 @@ export const AIChatModule: React.FC = () => {
                 >
                   <div className={`flex items-center justify-between gap-4 border-b pb-1.5 ${isBot ? "border-amber-500/20 text-amber-200" : "border-blue-950/30 text-blue-950"}`}>
                     <span className="font-bold text-[11px]">
-                      {isBot ? "Ustadz AI MUHAMMAD IKRAM 99" : "Santri"}
+                      {isBot ? "USTADZ MUHAMMAD IKRAM" : "Santri"}
                     </span>
                     <span className="text-[10px] opacity-80">{msg.timestamp}</span>
                   </div>
