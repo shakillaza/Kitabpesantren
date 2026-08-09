@@ -17,7 +17,7 @@ export const AIChatModule: React.FC = () => {
     {
       id: "1",
       role: "assistant",
-      text: "Assalamu'alaikum Warahmatullahi Wabarakatuh. Saya **Ustadz AI Shaqila 99**, asisten keilmuan Islam dan Kitab Kuning Pesantren. Ada masalah Fiqih, Nahwu, Sharaf, Tafsir, atau Hadits yang ingin didiskusikan hari ini?",
+      text: "Assalamu'alaikum Warahmatullahi Wabarakatuh. Saya **Ustadz AI MUHAMMAD IKRAM 99**, asisten keilmuan Islam dan Kitab Kuning Pesantren. Ada masalah Fiqih, Nahwu, Sharaf, Tafsir, atau Hadits yang ingin didiskusikan hari ini?",
       timestamp: "Baru saja",
     },
   ]);
@@ -161,7 +161,7 @@ export const AIChatModule: React.FC = () => {
                 >
                   <div className={`flex items-center justify-between gap-4 border-b pb-1.5 ${isBot ? "border-amber-500/20 text-amber-200" : "border-blue-950/30 text-blue-950"}`}>
                     <span className="font-bold text-[11px]">
-                      {isBot ? "Ustadz AI Shaqila 99" : "Santri"}
+                      {isBot ? "Ustadz AI MUHAMMAD IKRAM 99" : "Santri"}
                     </span>
                     <span className="text-[10px] opacity-80">{msg.timestamp}</span>
                   </div>

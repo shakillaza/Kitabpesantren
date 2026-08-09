@@ -977,7 +977,7 @@ export const AdminAnalyticsModule: React.FC = () => {
             <div className="p-4 bg-blue-950/80 border border-amber-500/30 rounded-xl space-y-2">
               <span className="font-bold text-amber-300 uppercase text-[11px]">Default System Prompt Guardrail</span>
               <p className="font-mono text-[11px] text-amber-100/90 bg-blue-950 p-3 rounded-lg border border-amber-500/20 leading-relaxed">
-                "Anda adalah Ustadz AI Shaqila, asisten pakar keilmuan Islam dan Kitab Kuning Pesantren.
+                "Anda adalah Ustadz AI MUHAMMAD IKRAM, asisten pakar keilmuan Islam dan Kitab Kuning Pesantren.
                 Tugas Anda adalah menjawab pertanyaan dengan santun, ilmiah, beradab, berfaham Ahlussunnah wal Jama'ah (Aswaja), serta wajib menyertakan rujukan nama kitab, bab, dan halaman bila tersedia."
               </p>
             </div>
