@@ -9,12 +9,16 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { ChatMessage } from "../types";
 import { safePostApi } from "../lib/apiClient";
 import { generateChatFallback } from "../lib/aiFallback";
+import { playTextToSpeech, stopTextToSpeech } from "../lib/audioService";
 
 export const AIChatModule: React.FC = () => {
+  const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -100,6 +104,20 @@ export const AIChatModule: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleToggleAudioMsg = (id: string, text: string) => {
+    if (playingMsgId === id) {
+      stopTextToSpeech();
+      setPlayingMsgId(null);
+    } else {
+      setPlayingMsgId(id);
+      playTextToSpeech(
+        text,
+        () => setPlayingMsgId(null),
+        () => setPlayingMsgId(null)
+      );
+    }
+  };
+
   const clearChat = () => {
     setMessages([
       {
@@ -178,7 +196,22 @@ export const AIChatModule: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="flex justify-end pt-1">
+                  <div className="flex items-center justify-end gap-3 pt-1">
+                    <button
+                      onClick={() => handleToggleAudioMsg(msg.id, msg.text)}
+                      className={`text-[10px] flex items-center gap-1 cursor-pointer transition-colors ${
+                        playingMsgId === msg.id
+                          ? "text-amber-400 font-bold animate-pulse"
+                          : isBot
+                          ? "text-amber-300/80 hover:text-amber-200"
+                          : "text-blue-950/80 hover:text-blue-950 font-bold"
+                      }`}
+                      title="Dengarkan Suara Ustadz"
+                    >
+                      {playingMsgId === msg.id ? <Volume2 className="w-3.5 h-3.5 animate-bounce" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      <span>{playingMsgId === msg.id ? "Memutar Suara..." : "Dengarkan"}</span>
+                    </button>
+
                     <button
                       onClick={() => handleCopyMessage(msg.id, msg.text)}
                       className={`text-[10px] flex items-center gap-1 cursor-pointer ${isBot ? "text-amber-300/80 hover:text-amber-200" : "text-blue-950/80 hover:text-blue-950 font-bold"}`}

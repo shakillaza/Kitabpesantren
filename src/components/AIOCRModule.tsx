@@ -9,10 +9,13 @@ import {
   Check,
   FileText,
   BookOpen,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { OCRResult } from "../types";
 import { safePostApi } from "../lib/apiClient";
 import { generateOCRFallback } from "../lib/aiFallback";
+import { playTextToSpeech, stopTextToSpeech } from "../lib/audioService";
 
 export const AIOCRModule: React.FC = () => {
   const [inputText, setInputText] = useState("");

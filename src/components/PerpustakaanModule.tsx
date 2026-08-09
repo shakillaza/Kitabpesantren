@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { MOCK_KITAB_DATA } from "../data/mockKitabData";
 import { KitabChapter, KitabItem } from "../types";
+import { playTextToSpeech, stopTextToSpeech } from "../lib/audioService";
 
 export const PerpustakaanModule: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -57,7 +58,18 @@ export const PerpustakaanModule: React.FC = () => {
   };
 
   const toggleAudio = () => {
-    setIsPlayingAudio(!isPlayingAudio);
+    if (isPlayingAudio) {
+      stopTextToSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      setIsPlayingAudio(true);
+      const textToRead = `${activeChapter.contentArabWithHarakat || activeChapter.contentArabGundul}. ${activeChapter.translation}`;
+      playTextToSpeech(
+        textToRead,
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
   };
 
   return (

@@ -8,10 +8,13 @@ import {
   AlertCircle,
   CheckCircle2,
   BookOpen,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { HafalanResult } from "../types";
 import { safePostApi } from "../lib/apiClient";
 import { generateHafalanFallback } from "../lib/aiFallback";
+import { playTextToSpeech, stopTextToSpeech, playChimeSound } from "../lib/audioService";
 
 export const AIHafalanQuizModule: React.FC = () => {
   const [selectedKitab, setSelectedKitab] = useState("Alfiyah Ibnu Malik");
@@ -20,6 +23,21 @@ export const AIHafalanQuizModule: React.FC = () => {
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<HafalanResult | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  const handlePlayNazham = (textToSpeak: string) => {
+    if (isPlayingAudio) {
+      stopTextToSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      setIsPlayingAudio(true);
+      playTextToSpeech(
+        textToSpeak,
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
+  };
 
   const sampleBait = [
     {
@@ -66,12 +84,15 @@ export const AIHafalanQuizModule: React.FC = () => {
 
   const toggleRecording = () => {
     if (!recording) {
+      playChimeSound("play");
       setRecording(true);
       setTimeout(() => {
         setRecording(false);
+        playChimeSound("success");
         setInputSantri(targetNazham.replace(/۞/g, ""));
       }, 3000);
     } else {
+      stopTextToSpeech();
       setRecording(false);
     }
   };
@@ -116,7 +137,21 @@ export const AIHafalanQuizModule: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-amber-200">Bait Target Rujukan</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-amber-200">Bait Target Rujukan</label>
+              <button
+                type="button"
+                onClick={() => handlePlayNazham(targetNazham)}
+                className={`flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                  isPlayingAudio
+                    ? "bg-amber-400 text-blue-950 border-amber-300 font-bold animate-pulse"
+                    : "bg-blue-900/80 text-amber-200 border-amber-400/30"
+                }`}
+              >
+                {isPlayingAudio ? <Volume2 className="w-3 h-3 animate-bounce" /> : <Volume2 className="w-3 h-3 text-amber-400" />}
+                <span>{isPlayingAudio ? "Memutar..." : "Dengarkan Audio"}</span>
+              </button>
+            </div>
             <textarea
               rows={2}
               value={targetNazham}

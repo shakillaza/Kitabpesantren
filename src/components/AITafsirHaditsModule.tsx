@@ -9,10 +9,13 @@ import {
   Layers,
   Check,
   Copy,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { TafsirHaditsResult } from "../types";
 import { safePostApi } from "../lib/apiClient";
 import { generateTafsirFallback } from "../lib/aiFallback";
+import { playTextToSpeech, stopTextToSpeech } from "../lib/audioService";
 
 export const AITafsirHaditsModule: React.FC = () => {
   const [query, setQuery] = useState("Keutamaan menuntut ilmu dan adab guru murid");
@@ -20,6 +23,7 @@ export const AITafsirHaditsModule: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TafsirHaditsResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   const sampleQueries = [
     { title: "Tafsir Keutamaan Ilmu (Surah Al-Mujadilah: 11)", mode: "tafsir" as const },
@@ -57,6 +61,22 @@ export const AITafsirHaditsModule: React.FC = () => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleToggleAudio = () => {
+    if (!result) return;
+    if (isPlayingAudio) {
+      stopTextToSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      setIsPlayingAudio(true);
+      const textToRead = `${result.teksArab}. Terjemahan: ${result.terjemahan}. ${result.tafsirPanjang}`;
+      playTextToSpeech(
+        textToRead,
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
   };
 
   return (
@@ -174,13 +194,28 @@ export const AITafsirHaditsModule: React.FC = () => {
               <h2 className="text-xl font-bold text-amber-200 mt-1">{result.topik}</h2>
             </div>
 
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 bg-blue-900/80 hover:bg-rose-900/60 text-amber-200 px-3 py-1.5 rounded-xl text-xs font-semibold border border-amber-400/30 transition-all cursor-pointer"
-            >
-              {copied ? <Check className="w-4 h-4 text-amber-300" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? "Tersalin!" : "Salin Riset"}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleToggleAudio}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  isPlayingAudio
+                    ? "bg-amber-400 text-blue-950 border-amber-300 font-bold animate-pulse"
+                    : "bg-blue-900/80 hover:bg-rose-900/60 text-amber-200 border-amber-400/30"
+                }`}
+                title="Dengarkan Murottal / Audio Pembacaan"
+              >
+                {isPlayingAudio ? <Volume2 className="w-4 h-4 animate-bounce" /> : <Volume2 className="w-4 h-4" />}
+                <span>{isPlayingAudio ? "Memutar Suara..." : "Dengarkan Audio"}</span>
+              </button>
+
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1.5 bg-blue-900/80 hover:bg-rose-900/60 text-amber-200 px-3 py-1.5 rounded-xl text-xs font-semibold border border-amber-400/30 transition-all cursor-pointer"
+              >
+                {copied ? <Check className="w-4 h-4 text-amber-300" /> : <Copy className="w-4 h-4" />}
+                <span>{copied ? "Tersalin!" : "Salin Riset"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Teks Arab Matan */}
