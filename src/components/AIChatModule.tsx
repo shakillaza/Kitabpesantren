@@ -119,7 +119,7 @@ export const AIChatModule: React.FC = () => {
             <Sparkles className="w-5 h-5 text-blue-950" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-amber-200">AI Chat Ustadz Virtual (Gemini Powered)</h1>
+            <h1 className="text-lg font-bold text-amber-200">AI Chat Ustadz Virtual</h1>
             <p className="text-xs text-amber-100/80">
               Diskusi interaktif Keilmuan Pesantren, Fiqih, Nahwu-Sharaf, dan Maraji' Turots Aswaja.
             </p>

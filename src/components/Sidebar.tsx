@@ -19,8 +19,21 @@ interface SidebarProps {
   setActiveTab: (tab: ActiveTab) => void;
 }
 
+interface MenuItem {
+  id: ActiveTab;
+  label: string;
+  icon: any;
+  badge?: string;
+  badgeColor?: string;
+}
+
+interface MenuGroup {
+  group: string;
+  items: MenuItem[];
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
-  const menuGroups = [
+  const menuGroups: MenuGroup[] = [
     {
       group: "LITERASI KITAB",
       items: [
@@ -38,8 +51,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
           id: "chat" as ActiveTab,
           label: "AI Chat Ustadz Virtual",
           icon: MessageSquareCode,
-          badge: "Gemini AI",
-          badgeColor: "bg-emerald-800/60 text-emerald-200 border-emerald-400/30",
         },
         {
           id: "ocr" as ActiveTab,
