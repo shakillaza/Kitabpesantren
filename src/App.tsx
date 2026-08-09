@@ -73,7 +73,7 @@ export default function App() {
           <div>
             <span className="font-bold text-white">SHAQILA DIGITAL 99</span> — Platform Smart AI Kitab Pesantren Indonesia
             <p className="text-[11px] text-emerald-100 mt-0.5">
-              Powered by Google Gemini Multimodal AI • Clean Architecture & Enterprise License
+              Clean Architecture & Enterprise License
             </p>
           </div>
           <div className="text-[11px] text-emerald-100">
