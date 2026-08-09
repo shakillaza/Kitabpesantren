@@ -103,23 +103,17 @@ export function playTextToSpeech(
 
   const utterance = new SpeechSynthesisUtterance(cleanText);
 
-  // Language & Voice Selection
-  const isArab = isArabicText(cleanText);
-  const targetLang = isArab ? "ar-SA" : "id-ID";
+  // Language & Voice Selection (Enforced Arabic Speech Synthesis as requested)
+  const targetLang = "ar-SA";
   utterance.lang = targetLang;
-  utterance.rate = isArab ? 0.85 : 0.95; // Slightly slower for clear Arabic pronunciation
+  utterance.rate = 0.85; // Natural pace for Arabic recitation
   utterance.pitch = 1.0;
 
-  // Try matching best voice
+  // Try matching best Arabic voice
   const voices = window.speechSynthesis.getVoices();
   let matchedVoice = voices.find(
-    (v) => v.lang === targetLang || v.lang.startsWith(isArab ? "ar" : "id")
+    (v) => v.lang === "ar-SA" || v.lang.startsWith("ar") || v.lang.toLowerCase().includes("arabic")
   );
-
-  if (!matchedVoice && isArab) {
-    // Fallback Arabic voices
-    matchedVoice = voices.find((v) => v.lang.toLowerCase().includes("ar"));
-  }
 
   if (matchedVoice) {
     utterance.voice = matchedVoice;

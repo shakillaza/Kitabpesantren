@@ -77,7 +77,7 @@ export default function App() {
             </p>
           </div>
           <div className="text-[11px] text-emerald-100">
-            © 2026 SHAQILA Digital Indonesia. All Rights Reserved.
+            © 2026 SHAQILA Digital 99 Indonesia. All Rights Reserved.
           </div>
         </div>
       </footer>
