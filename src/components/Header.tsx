@@ -56,18 +56,6 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Quick Navigation Links - Desktop */}
           <nav className="hidden lg:flex items-center gap-1 bg-emerald-950/80 p-1.5 rounded-xl border border-emerald-500/30 text-sm">
             <button
-              onClick={() => setActiveTab("docs")}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                activeTab === "docs"
-                  ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-emerald-950 font-bold shadow-md"
-                  : "text-white hover:bg-emerald-900/60"
-              }`}
-            >
-              <FileCode2 className="w-4 h-4" />
-              <span>Arsitektur Sistem</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab("library")}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-all ${
                 activeTab === "library"
@@ -133,17 +121,6 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-gradient-to-b from-emerald-950 via-teal-950 to-emerald-900 border-t border-emerald-500/30 px-4 py-3 space-y-2 text-sm">
-          <button
-            onClick={() => {
-              setActiveTab("docs");
-              setMobileMenuOpen(false);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-900/60"
-          >
-            <FileCode2 className="w-4 h-4 text-emerald-400" />
-            <span>Spesifikasi Arsitektur Sistem (Phase 1)</span>
-          </button>
-
           <button
             onClick={() => {
               setActiveTab("library");

@@ -16,7 +16,7 @@ import { NotificationDrawer } from "./components/NotificationDrawer";
 import { ActiveTab, LicenseInfo } from "./types";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("docs");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("library");
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 

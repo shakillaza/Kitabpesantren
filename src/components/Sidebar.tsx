@@ -22,18 +22,6 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const menuGroups = [
     {
-      group: "DOKUMENTASI SISTEM",
-      items: [
-        {
-          id: "docs" as ActiveTab,
-          label: "Arsitektur Sistem (Phase 1)",
-          icon: FileText,
-          badge: "Blueprints",
-          badgeColor: "bg-emerald-800/60 text-emerald-200 border-emerald-400/30",
-        },
-      ],
-    },
-    {
       group: "LITERASI KITAB",
       items: [
         {
