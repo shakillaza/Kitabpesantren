@@ -933,6 +933,39 @@ app.get("/api/devops/deploy-status", (_req, res) => {
   });
 });
 
+// 15. AI Text-To-Speech (Gemini 3.1 TTS Preview) Endpoint
+app.post("/api/gemini/tts", async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Teks wajib diisi" });
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-flash-tts-preview",
+      contents: [{ parts: [{ text: `Say clearly in Arabic: ${text}` }] }],
+      config: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: "Kore" },
+          },
+        },
+      },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (base64Audio) {
+      res.json({ audioBase64: base64Audio, mimeType: "audio/pcm;rate=24000" });
+    } else {
+      res.json({ audioBase64: null, message: "Menggunakan fallback Web Speech API" });
+    }
+  } catch (err: any) {
+    console.error("Error in /api/gemini/tts:", err);
+    res.status(500).json({ error: err.message || "Gagal memproses Gemini 3.1 TTS" });
+  }
+});
+
 // Endpoint: Operational Runbook Procedures
 app.get("/api/devops/runbook", (_req, res) => {
   res.json({
