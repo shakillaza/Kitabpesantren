@@ -1,0 +1,6 @@
+{
+  "name": "SHAQILA DIGITAL 99",
+  "description": "Platform Smart AI Kitab Pesantren & Architecture Documentation Center untuk Pesantren Indonesia",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
