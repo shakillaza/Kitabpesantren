@@ -933,36 +933,93 @@ app.get("/api/devops/deploy-status", (_req, res) => {
   });
 });
 
-// 15. AI Text-To-Speech (Gemini 3.1 TTS Preview) Endpoint
+// 15. AI Text-To-Speech (Gemini + Google Voice Audio Engine) Endpoint
 app.post("/api/gemini/tts", async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, lang } = req.body;
     if (!text) {
       return res.status(400).json({ error: "Teks wajib diisi" });
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-tts-preview",
-      contents: [{ parts: [{ text: `Say clearly in Arabic: ${text}` }] }],
-      config: {
-        responseModalities: ["AUDIO"],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: "Kore" },
+    const cleanText = text.replace(/[*#_`]/g, "").trim();
+    if (!cleanText) {
+      return res.status(400).json({ error: "Teks kosong" });
+    }
+
+    // 1. Try Gemini AI Model Audio Generation
+    try {
+      let systemPrompt = "";
+      if (lang === "ar") {
+        systemPrompt = "You are a professional Arabic Quranic and Kitab reciter. Recite the following Arabic text clearly in Arabic with authentic tajweed and makhraj:";
+      } else if (lang === "id") {
+        systemPrompt = "Anda adalah pengisi suara Bahasa Indonesia. Baca dan tuturkan teks berikut dalam Bahasa Indonesia yang fasih, alami, dan jelas tanpa logat asing:";
+      } else {
+        systemPrompt = "You are an expert bilingual reciter and narrator. Read all Arabic text in beautiful Arabic recitation with tajweed, and read all Indonesian text in clear, fluent Indonesian:";
+      }
+
+      const voiceName = lang === "ar" ? "Aoede" : "Puck";
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ parts: [{ text: `${systemPrompt}\n\n${cleanText}` }] }],
+        config: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName },
+            },
           },
         },
-      },
-    });
+      });
 
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (base64Audio) {
-      res.json({ audioBase64: base64Audio, mimeType: "audio/pcm;rate=24000" });
-    } else {
-      res.json({ audioBase64: null, message: "Menggunakan fallback Web Speech API" });
+      const candidatePart = response.candidates?.[0]?.content?.parts?.[0];
+      const base64Audio = candidatePart?.inlineData?.data;
+      const mimeType = candidatePart?.inlineData?.mimeType || "audio/pcm;rate=24000";
+
+      if (base64Audio) {
+        return res.json({ audioBase64: base64Audio, mimeType });
+      }
+    } catch (err) {
+      console.warn("Gemini TTS model output unavailable, switching to Google Voice Audio Engine:", err);
     }
+
+    // 2. High-Reliability Google Voice Audio Engine Fallback
+    try {
+      const targetLang = lang === "ar" ? "ar" : "id";
+      // Split into <= 180 character chunks for smooth processing
+      const sentences = cleanText.match(/.{1,180}(?=\s|$)/g) || [cleanText.slice(0, 180)];
+      const audioBuffers: Buffer[] = [];
+
+      for (const sentence of sentences) {
+        const sTrim = sentence.trim();
+        if (!sTrim) continue;
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${targetLang}&q=${encodeURIComponent(sTrim)}`;
+        const resp = await fetch(url, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          }
+        });
+        if (resp.ok) {
+          const ab = await resp.arrayBuffer();
+          audioBuffers.push(Buffer.from(ab));
+        }
+      }
+
+      if (audioBuffers.length > 0) {
+        const combinedBuffer = Buffer.concat(audioBuffers);
+        return res.json({
+          audioBase64: combinedBuffer.toString("base64"),
+          mimeType: "audio/mp3"
+        });
+      }
+    } catch (fallbackErr) {
+      console.warn("Google Voice Audio Engine fallback failed:", fallbackErr);
+    }
+
+    res.status(500).json({ error: "Gagal memproses audio TTS" });
   } catch (err: any) {
     console.error("Error in /api/gemini/tts:", err);
-    res.status(500).json({ error: err.message || "Gagal memproses Gemini 3.1 TTS" });
+    res.status(500).json({ error: err.message || "Gagal memproses Gemini TTS" });
   }
 });
 

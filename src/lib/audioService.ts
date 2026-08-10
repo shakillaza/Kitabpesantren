@@ -67,7 +67,7 @@ function cleanTextForTTS(rawText: string): string {
     .replace(/#/g, "")
     .replace(/`/g, "")
     .replace(/\[.*?\]/g, "")
-    .replace(/\(.*?\)/g, "")
+    .replace(/[\(\)\[\]]/g, " ")
     .replace(/--/g, " ")
     .replace(/_{1,2}/g, "")
     .trim();
@@ -78,110 +78,242 @@ export function isArabicText(text: string): boolean {
   return /[\u0600-\u06FF]/.test(text);
 }
 
-// Main Text-To-Speech Player with Gemini 3.1 TTS + Arabic Web Speech API Fallback
+interface LanguageChunk {
+  text: string;
+  isArab: boolean;
+}
+
+// Split text into distinct Arabic and non-Arabic (Indonesian) segments
+function segmentTextByLanguage(rawText: string): LanguageChunk[] {
+  const clean = cleanTextForTTS(rawText);
+  if (!clean) return [];
+
+  // Split by major structural punctuation or newlines
+  const lines = clean.split(/(?<=[.!?\n])\s+/);
+  const chunks: LanguageChunk[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    const hasArabic = /[\u0600-\u06FF]/.test(trimmed);
+    const hasLatin = /[a-zA-Z]/.test(trimmed);
+
+    if (hasArabic && hasLatin) {
+      // Line contains both (e.g. "Tafsir: yarfai Allah..."), split Arabic vs Latin characters
+      const parts = trimmed.split(/([\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+)/);
+      for (const p of parts) {
+        const pTrim = p.trim();
+        if (!pTrim) continue;
+        const pIsArab = /[\u0600-\u06FF]/.test(pTrim);
+
+        if (chunks.length > 0 && chunks[chunks.length - 1].isArab === pIsArab) {
+          chunks[chunks.length - 1].text += " " + pTrim;
+        } else {
+          chunks.push({ text: pTrim, isArab: pIsArab });
+        }
+      }
+    } else {
+      if (chunks.length > 0 && chunks[chunks.length - 1].isArab === hasArabic) {
+        chunks[chunks.length - 1].text += " " + trimmed;
+      } else {
+        chunks.push({ text: trimmed, isArab: hasArabic });
+      }
+    }
+  }
+
+  return chunks;
+}
+
+// Helper to call backend Gemini TTS API safely
+async function fetchGeminiTTS(text: string, lang: "ar" | "id" | "auto"): Promise<{ audioBase64: string; mimeType: string } | null> {
+  try {
+    const res = await fetch("/api/gemini/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, lang }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data?.audioBase64) {
+      return { audioBase64: data.audioBase64, mimeType: data.mimeType || "audio/pcm;rate=24000" };
+    }
+    return null;
+  } catch (e) {
+    console.warn("Gemini TTS fetch failed:", e);
+    return null;
+  }
+}
+
+let activePlaybackToken: number = 0;
+
+export function stopTextToSpeech() {
+  activePlaybackToken++;
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  playChimeSound("stop");
+}
+
+// Main Text-To-Speech Player: Reads Arabic in Arabic voice & Indonesian in Indonesian voice
 export async function playTextToSpeech(
   text: string,
   onEnd?: () => void,
   onError?: (err: any) => void
 ) {
+  // Synchronously activate AudioContext on user click to satisfy browser user gesture policy
+  getAudioContext();
   playChimeSound("play");
+  
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+
   const cleanText = cleanTextForTTS(text);
   if (!cleanText) {
     if (onEnd) onEnd();
     return;
   }
 
-  // Stop active web speech
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
+  const currentToken = ++activePlaybackToken;
+  const chunks = segmentTextByLanguage(cleanText);
 
-  // Try Gemini 3.1 TTS via server API
-  try {
-    const res = await safePostApi("/api/gemini/tts", { text: cleanText });
-    if (res?.audioBase64) {
-      playPCM24kAudio(res.audioBase64, () => {
-        playChimeSound("stop");
-        if (onEnd) onEnd();
-      });
-      return;
-    }
-  } catch (e) {
-    console.warn("Gemini 3.1 TTS endpoint failed, using Web Speech API fallback:", e);
-  }
-
-  // Fallback to Browser Web Speech API (Arabic ar-SA)
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    console.warn("SpeechSynthesis is not supported in this browser.");
-    if (onError) onError("Fitur Suara TTS tidak didukung di browser ini.");
+  if (chunks.length === 0) {
     if (onEnd) onEnd();
     return;
   }
 
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = "ar-SA"; // Enforce Arabic Language
-  utterance.rate = 0.85; // Natural pace for Arabic recitation
-  utterance.pitch = 1.0;
-
-  const voices = window.speechSynthesis.getVoices();
-  let matchedVoice = voices.find(
-    (v) => v.lang === "ar-SA" || v.lang.startsWith("ar") || v.lang.toLowerCase().includes("arabic")
-  );
-
-  if (matchedVoice) {
-    utterance.voice = matchedVoice;
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.resume();
   }
 
-  utterance.onend = () => {
-    playChimeSound("stop");
-    if (onEnd) onEnd();
+  let currentChunkIndex = 0;
+
+  const playNextChunk = async () => {
+    if (currentToken !== activePlaybackToken) return;
+
+    if (currentChunkIndex >= chunks.length) {
+      playChimeSound("stop");
+      if (onEnd) onEnd();
+      return;
+    }
+
+    const chunk = chunks[currentChunkIndex];
+    currentChunkIndex++;
+
+    const lang: "ar" | "id" = chunk.isArab ? "ar" : "id";
+
+    // Step 1: Try high-quality Gemini TTS with language-matched voice and prompt
+    try {
+      const ttsResult = await fetchGeminiTTS(chunk.text, lang);
+      if (currentToken !== activePlaybackToken) return;
+
+      if (ttsResult?.audioBase64) {
+        await playAudioBuffer(ttsResult.audioBase64, ttsResult.mimeType, () => {
+          if (currentToken === activePlaybackToken) {
+            playNextChunk();
+          }
+        });
+        return;
+      }
+    } catch (e) {
+      console.warn("Gemini TTS chunk fetch failed, trying Web Speech API fallback:", e);
+    }
+
+    // Step 2: Web Speech API Fallback for this chunk
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.resume();
+
+      const voices = window.speechSynthesis.getVoices();
+      const targetLangCode = chunk.isArab ? "ar" : "id";
+      
+      let matchedVoice = voices.find((v) =>
+        v.lang.toLowerCase().startsWith(targetLangCode) ||
+        v.lang.toLowerCase().includes(chunk.isArab ? "arabic" : "indonesian")
+      );
+
+      if (!matchedVoice && !chunk.isArab) {
+        matchedVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ms"));
+      }
+
+      const utterance = new SpeechSynthesisUtterance(chunk.text);
+
+      if (chunk.isArab) {
+        utterance.lang = "ar-SA";
+        utterance.rate = 0.85; // Natural pace for Arabic recitation
+        utterance.pitch = 1.0;
+      } else {
+        utterance.lang = "id-ID";
+        utterance.rate = 0.95; // Natural pace for Indonesian narration
+        utterance.pitch = 1.0;
+      }
+
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+
+      utterance.onend = () => {
+        if (currentToken === activePlaybackToken) {
+          playNextChunk();
+        }
+      };
+
+      utterance.onerror = (evt) => {
+        console.warn("Utterance chunk playback warning:", evt);
+        if (currentToken === activePlaybackToken) {
+          playNextChunk();
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } else {
+      playNextChunk();
+    }
   };
 
-  utterance.onerror = (evt) => {
-    console.warn("TTS utterance error:", evt);
-    playChimeSound("stop");
-    if (onEnd) onEnd();
-    if (onError) onError(evt);
-  };
-
-  window.speechSynthesis.speak(utterance);
+  playNextChunk();
 }
 
-// Play raw 24kHz PCM from Gemini TTS
-function playPCM24kAudio(base64Pcm: string, onEnd?: () => void) {
+// Play decoded audio buffer or raw 24kHz PCM from Gemini TTS
+async function playAudioBuffer(base64Data: string, mimeType: string, onEnd?: () => void) {
   try {
-    const binary = atob(base64Pcm);
+    const binary = atob(base64Data);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    const int16 = new Int16Array(bytes.buffer);
-    const float32 = new Float32Array(int16.length);
-    for (let i = 0; i < int16.length; i++) {
-      float32[i] = int16[i] / 32768.0;
+
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") {
+      await ctx.resume();
     }
 
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    const ctx = new AudioContextClass({ sampleRate: 24000 });
-    const buffer = ctx.createBuffer(1, float32.length, 24000);
-    buffer.getChannelData(0).set(float32);
+    let audioBuffer: AudioBuffer | null = null;
+
+    // Try standard decodeAudioData first
+    try {
+      const bufferCopy = bytes.buffer.slice(0);
+      audioBuffer = await ctx.decodeAudioData(bufferCopy);
+    } catch {
+      // Fallback for raw 16-bit PCM 24kHz
+      const int16 = new Int16Array(bytes.buffer);
+      const float32 = new Float32Array(int16.length);
+      for (let i = 0; i < int16.length; i++) {
+        float32[i] = int16[i] / 32768.0;
+      }
+      audioBuffer = ctx.createBuffer(1, float32.length, 24000);
+      audioBuffer.getChannelData(0).set(float32);
+    }
 
     const source = ctx.createBufferSource();
-    source.buffer = buffer;
+    source.buffer = audioBuffer;
     source.connect(ctx.destination);
     source.onended = () => {
       if (onEnd) onEnd();
     };
     source.start(0);
   } catch (e) {
-    console.warn("PCM audio playback error:", e);
+    console.warn("Audio playback error:", e);
     if (onEnd) onEnd();
-  }
-}
-
-export function stopTextToSpeech() {
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-    playChimeSound("stop");
   }
 }
