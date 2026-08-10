@@ -137,6 +137,11 @@ export const AINahwuSharafModule: React.FC = () => {
               <h2 className="text-2xl font-serif text-amber-200 font-bold mt-1 dir-rtl text-right">
                 {result.kalimat}
               </h2>
+              {result.teksLatin && (
+                <p className="text-xs text-amber-300/90 font-medium italic mt-1 text-right">
+                  Cara Baca: {result.teksLatin}
+                </p>
+              )}
             </div>
 
             <button

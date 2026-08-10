@@ -226,6 +226,16 @@ export const AITafsirHaditsModule: React.FC = () => {
             <p className="font-serif text-2xl sm:text-3xl text-amber-100 font-medium leading-[2.4] text-right dir-rtl">
               {result.teksArab}
             </p>
+            {result.teksLatin && (
+              <div className="pt-3 mt-3 border-t border-amber-500/30">
+                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">
+                  Transliterasi Latin (Cara Baca):
+                </span>
+                <p className="text-xs sm:text-sm text-amber-200/90 font-medium italic">
+                  {result.teksLatin}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Terjemahan */}

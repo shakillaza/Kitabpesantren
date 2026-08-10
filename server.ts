@@ -82,9 +82,10 @@ ${imageBase64 ? "Analisis gambar teks kitab gundul ini." : "Lakukan restorasi ha
 Tugas Anda:
 1. Ekstrak teks Arab secara presisi (Teks Asli Gundul).
 2. Tambahkan Harakat Lengkap (Teks Ber-harakat / Syakal).
-3. Berikan Terjemahan kontekstual Bahasa Indonesia (atau style Makna Gandul Pesantren bila relevan).
-4. Klasifikasikan Nama Kitab / Bab yang paling sesuai.
-5. Berikan Ringkasan kandungan hukum / hikmahnya.
+3. Berikan Transliterasi Teks Latin (cara membaca tulisan Arab dengan huruf Latin secara tepat).
+4. Berikan Terjemahan kontekstual Bahasa Indonesia (atau style Makna Gandul Pesantren bila relevan).
+5. Klasifikasikan Nama Kitab / Bab yang paling sesuai.
+6. Berikan Ringkasan kandungan hukum / hikmahnya.
 
 ${rawText ? `Teks Input: "${rawText}"` : ""}
 
@@ -92,6 +93,7 @@ Kembalikan format JSON persis sesuai struktur ini:
 {
   "teksGundul": "string",
   "teksHarakat": "string",
+  "teksLatin": "string (transliterasi Latin cara membaca teks Arab)",
   "terjemahan": "string",
   "maknaGandul": "string",
   "estNamaKitab": "string",
@@ -134,16 +136,18 @@ app.post("/api/gemini/nahwu-sharaf", async (req, res) => {
 
 Berikan breakdown per kata:
 1. Kata (الكلمة)
-2. Jenis Kata (Isim / Fi'il / Huruf)
-3. Kedudukan I'rab (Rafa' / Nashab / Jar / Jazam)
-4. Tanda I'rab (Dhammah, Fathah, Kasrah, Sukun, dll)
-5. Alasan Kedudukan (Fa'il, Maf'ul bih, Mubtada', Khabar, Mudhaf ilaih, dll)
-6. Wazan Sharaf & Bina' (Mudhāri', Mādhī, Amar, Masdar, Bina' Shahīh, Ajwaf, dll)
-7. Syahid Syi'ir Nazham (jika ada rujukan Alfiyah Ibnu Malik atau Imrithi yang relevan)
+2. Transliterasi Latin (cara baca Latin)
+3. Jenis Kata (Isim / Fi'il / Huruf)
+4. Kedudukan I'rab (Rafa' / Nashab / Jar / Jazam)
+5. Tanda I'rab (Dhammah, Fathah, Kasrah, Sukun, dll)
+6. Alasan Kedudukan (Fa'il, Maf'ul bih, Mubtada', Khabar, Mudhaf ilaih, dll)
+7. Wazan Sharaf & Bina' (Mudhāri', Mādhī, Amar, Masdar, Bina' Shahīh, Ajwaf, dll)
+8. Syahid Syi'ir Nazham (jika ada rujukan Alfiyah Ibnu Malik atau Imrithi yang relevan)
 
 Kembalikan format JSON:
 {
   "kalimat": "${kalimatArab}",
+  "teksLatin": "string (transliterasi Latin cara membaca kalimat)",
   "ringkasanKaidah": "string",
   "breakdown": [
     {
@@ -185,16 +189,18 @@ Pertanyaan / Topik Pencarian: "${query}" (Mode: ${mode})
 
 Lakukan analisis komprehensif:
 1. Teks Arab lengkap beserta Harakat.
-2. Terjemahan Kementerian Agama & Kontekstual Pesantren.
-3. Rincian Tafsir dari Mufassir ternama (Jalalain, Ibnu Katsir, Al-Munir).
-4. Untuk Hadits: Sebutkan Perawi (Bukhari, Muslim, Tirmidzi), Sanad, Matan, dan Derajat Hadits (Shahih / Hasan / Dha'if).
-5. Asbabun Nuzul / Asbabur Wurud.
-6. Penjelasan Istinbath Hukum / Fiqih Praktis.
+2. Transliterasi Teks Latin (cara membaca tulisan Arab dengan huruf Latin secara tepat).
+3. Terjemahan Kementerian Agama & Kontekstual Pesantren.
+4. Rincian Tafsir dari Mufassir ternama (Jalalain, Ibnu Katsir, Al-Munir).
+5. Untuk Hadits: Sebutkan Perawi (Bukhari, Muslim, Tirmidzi), Sanad, Matan, dan Derajat Hadits (Shahih / Hasan / Dha'if).
+6. Asbabun Nuzul / Asbabur Wurud.
+7. Penjelasan Istinbath Hukum / Fiqih Praktis.
 
 Kembalikan format JSON:
 {
   "topik": "string",
   "teksArab": "string",
+  "teksLatin": "string (transliterasi Latin cara membaca teks Arab)",
   "terjemahan": "string",
   "sumber": "string",
   "mufassirOrPerawi": "string",
@@ -233,7 +239,8 @@ Analisis:
 1. Skor Akurasi Hafalan (0 - 100).
 2. Detail Kesalahan (Lupa kata, salah harakat, bait tertukar, dll).
 3. Koreksi Teks Arab yang benar.
-4. Catatan Motivasi & Tips Menghafal dari Ustadz.
+4. Transliterasi Teks Latin untuk koreksi teks Arab.
+5. Catatan Motivasi & Tips Menghafal dari Ustadz.
 
 Kembalikan format JSON:
 {
@@ -241,6 +248,7 @@ Kembalikan format JSON:
   "statusHafalan": "Mumtaz / Jayyid Jiddan / Perlu Muroja'ah",
   "detailKesalahan": ["string"],
   "teksKoreksi": "string",
+  "teksLatin": "string (transliterasi Latin teks koreksi)",
   "catatanUstadz": "string"
 }`;
 

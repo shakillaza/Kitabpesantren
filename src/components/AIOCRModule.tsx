@@ -259,6 +259,17 @@ export const AIOCRModule: React.FC = () => {
               </div>
 
               {/* Terjemahan */}
+              {result.teksLatin && (
+                <div className="bg-blue-950/90 p-4 rounded-xl border border-amber-400/40 space-y-1">
+                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
+                    Cara Baca / Transliterasi Latin
+                  </span>
+                  <p className="text-xs sm:text-sm text-amber-200 font-medium italic leading-relaxed">
+                    {result.teksLatin}
+                  </p>
+                </div>
+              )}
+
               <div className="bg-blue-950/80 p-4 rounded-xl border border-amber-500/30 space-y-1.5">
                 <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
                   <BookOpen className="w-3.5 h-3.5 text-amber-400" />

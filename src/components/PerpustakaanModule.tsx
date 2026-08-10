@@ -265,6 +265,18 @@ export const PerpustakaanModule: React.FC = () => {
                 {showHarakat ? activeChapter.contentArabWithHarakat : activeChapter.contentArabGundul}
               </div>
 
+              {/* Transliterasi Latin (Cara Baca) */}
+              {activeChapter.transliterasiLatin && (
+                <div className="bg-blue-950/90 text-amber-200 p-3.5 rounded-xl text-left border border-amber-400/30">
+                  <span className="block text-[10px] font-sans font-bold text-amber-400 uppercase tracking-widest mb-1">
+                    Cara Baca / Transliterasi Latin
+                  </span>
+                  <p className="text-xs sm:text-sm font-medium italic text-amber-100/90 leading-relaxed">
+                    {activeChapter.transliterasiLatin}
+                  </p>
+                </div>
+              )}
+
               {/* Makna Gandul Pesantren Box */}
               {showMaknaGandul && activeChapter.maknaGandul && (
                 <div className="bg-blue-950 text-amber-300 p-4 rounded-xl text-right font-serif text-lg leading-relaxed border border-amber-400/40">

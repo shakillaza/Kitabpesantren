@@ -87,6 +87,7 @@ export function generateOCRFallback(rawText?: string): any {
   return {
     teksGundul: rawText || "الحمد لله رب العالمين والصلاة والسلام على اشرف الانبياء والمرسلين",
     teksHarakat: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ وَالصَّلاَةُ وَالسَّلاَمُ عَلَى أَشْرَفِ الأَنْبِيَاءِ وَالْمُرْسَلِينَ",
+    teksLatin: "Al-hamdulillāhi rabbil-'ālamīn, wash-shalātu was-salāmu 'alā asyrafil-anbiyā'i wal-mursalīn.",
     terjemahan: "Segala puji bagi Allah Tuhan semesta alam, serta shalawat dan salam semoga tercurah kepada seutamanya para nabi dan rasul.",
     maknaGandul: "Utawi sekabehane puji iku kagunganipun Allah kang Mangerani wong alam kabeh...",
     estNamaKitab: "Kitab Muqaddimah Safinatun Najah / Fathul Qarib Al-Mujib",
@@ -97,6 +98,7 @@ export function generateOCRFallback(rawText?: string): any {
 export function generateNahwuFallback(kalimatArab: string): any {
   return {
     kalimat: kalimatArab || "جَاءَ زَيْدٌ عَالِمًا",
+    teksLatin: "Jā'a Zaidun 'āliman",
     ringkasanKaidah: "Kalimat ini terdiri dari Fi'il Madhi (جَاءَ), Fa'il Marfu' (زَيْدٌ), dan Hal Manshub (عَالِمًا).",
     syahidNazham: "وَالنَّصْبُ فِي المَفْعُوْلِ أَوْ حَالٍ يَقَعْ ۞ كَجَاءَ زَيْدٌ وَهْوَ لِلْعِلْمِ اتَّبَعْ (Alfiyah Ibnu Malik)",
     tarkibDetail: [
@@ -112,6 +114,7 @@ export function generateTafsirFallback(query: string, mode: "tafsir" | "hadits")
     topik: query || "Keutamaan Menuntut Ilmu Agama",
     sumber: mode === "tafsir" ? "QS. Al-Mujadilah: 11 (Tafsir Ibn Katsir & Jalalain)" : "Hadits Riwayat Muslim (Bulughul Maram)",
     teksArab: "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ",
+    teksLatin: "Yarfai'illāhullażīna āmanū minkum wallażīna ūtul-'ilma darajāt.",
     terjemahan: "Allah akan meninggikan orang-orang yang beriman di antaramu dan orang-orang yang diberi ilmu pengetahuan beberapa derajat.",
     tafsirPanjang: "Ayat ini menegaskan kemuliaan dan derajat tinggi yang Allah berikan kepada para penuntut ilmu yang beriman. Menurut Imam Al-Qurthubi dan Al-Jalalain, derajat ilmu melingkupi pahala di akhirat dan kehormatan di dunia.",
   };
@@ -123,6 +126,8 @@ export function generateHafalanFallback(inputSantri: string, targetNazham: strin
     statusGrading: "MUMTAZ (Sangat Baik)",
     jumlahSalahHarakat: 1,
     jumlahSalahLafadz: 0,
+    teksKoreksi: targetNazham || "بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ",
+    teksLatin: "Bismillāhir-rahmānir-rahīm",
     rincianKoreksi: [
       { kata: "الرحمان", status: "Koreksi Harakat", yangBenar: "الرَّحْمٰنِ", catatan: "Panjang Mad Thabi'i ditandai dengan alif khanjariah." }
     ],

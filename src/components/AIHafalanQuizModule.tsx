@@ -271,6 +271,16 @@ export const AIHafalanQuizModule: React.FC = () => {
                 <p className="font-serif text-xl text-amber-100 font-bold dir-rtl text-right leading-relaxed">
                   {result.teksKoreksi}
                 </p>
+                {result.teksLatin && (
+                  <div className="pt-2 border-t border-amber-500/20">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-0.5">
+                      Cara Baca / Transliterasi Latin:
+                    </span>
+                    <p className="text-xs text-amber-200 font-medium italic">
+                      {result.teksLatin}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Catatan Kesalahan */}

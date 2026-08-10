@@ -29,6 +29,7 @@ export interface KitabChapter {
   babNumber: number;
   title: string;
   titleArab: string;
+  transliterasiLatin?: string;
   contentArabWithHarakat: string;
   contentArabGundul: string;
   translation: string;
@@ -47,6 +48,7 @@ export interface ChatMessage {
 export interface OCRResult {
   teksGundul: string;
   teksHarakat: string;
+  teksLatin?: string;
   terjemahan: string;
   maknaGandul?: string;
   estNamaKitab?: string;
@@ -55,6 +57,7 @@ export interface OCRResult {
 
 export interface NahwuAnalysisResult {
   kalimat: string;
+  teksLatin?: string;
   ringkasanKaidah: string;
   breakdown: {
     kata: string;
@@ -71,6 +74,7 @@ export interface NahwuAnalysisResult {
 export interface TafsirHaditsResult {
   topik: string;
   teksArab: string;
+  teksLatin?: string;
   terjemahan: string;
   sumber: string;
   mufassirOrPerawi: string;
@@ -85,6 +89,7 @@ export interface HafalanResult {
   statusHafalan: string;
   detailKesalahan: string[];
   teksKoreksi: string;
+  teksLatin?: string;
   catatanUstadz: string;
 }
 
